@@ -4,7 +4,7 @@ date: 2026-04-17
 layout: post
 ---
 
-There has been a lot of buzz on Anthropic’s /*‘too dangerous to release’*/ Mythos AI model was able to find and exploit a 17-year old bug **Remote code execution in FreeBSD** [CVE-2026-4747](https://red.anthropic.com/2026/mythos-preview/). The model is touted to be able to "fully autonomously" discover and exploit vulnerabilities. As it is too dangerous to release, only select companies like Google, Microsoft etc. got first dibs on trying Mythos.
+There has been a lot of buzz on Anthropic’s *‘too dangerous to release’* Mythos AI model was able to find and exploit a 17-year old bug **Remote code execution in FreeBSD** [CVE-2026-4747](https://red.anthropic.com/2026/mythos-preview/). The model is touted to be able to "fully autonomously" discover and exploit vulnerabilities. As it is too dangerous to release, only select companies like Google, Microsoft etc. got first dibs on trying Mythos.
 
 # The Motivation
 Recently I set up a [local llama.cpp instance](https://darrenpyw.github.io/profile/2026/04/01/llama.cpp.html) on a gaming laptop I bought off Carousell years ago. The intention is to learn how LLMs and Agentic AI works without busting my wallet paying for tokens using frontier models. The hardware limitiation means I can only choose models that fits under 6 GB VRAM on my laptop's RTX 3060 GPU.
@@ -148,7 +148,7 @@ To be fully autonomous, Anthropic's model would have to replicate what a pentest
 
 ![What did it cost?]({{"/assets/images/what_did_it_cost.jpg" | relative_url}}){:width="80%"}
 
-To think that the first step of this exploit can be replicated with a simple prompt on an old gaming laptop from 2020 with RTX 3060 6GB VRAM GPU, and of course an open weight model for free in 2026 is... just amazing!
+To think that the first step of this exploit can be replicated with a simple prompt on an old gaming laptop from 2021 with RTX 3060 6GB VRAM GPU, and of course an open weight model for free in 2026 is... just amazing!
 
 A total of 15,488 tokens was consumed to analyze the vulnerable file. Here's the cost table from Google Gemini:
 
