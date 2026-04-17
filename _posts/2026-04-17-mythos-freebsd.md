@@ -76,7 +76,8 @@ index b12880d..e3b98ad 100644
 With this change, Gemma4 got it in the first try and identified the vulnerable function name in the file `svc_rpcsec_gss.c`. It correctly identified the failure mode of using memcpy to copy data based on the length provided by the caller (oa->oa_length) without performing a bounds check against the size of rpchdr. This tracks with the FreeBSD [patch](https://www.freebsd.org/security/patches/SA-26:08/rpcsec_gss.patch) released to fix this issue.
 
 ---
-{% include_relative /assets/posts/2026-04-17_09-19-svc_rpcsec_gss.md %}
+{% capture my_content %}{% include /assets/posts/2026-04-17_09-19-svc_rpcsec_gss.md %}{% endcapture %}
+{{ my_content | markdownify }}
 ---
 
 ## The missing parts
