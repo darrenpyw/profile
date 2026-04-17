@@ -54,7 +54,7 @@ Point the code review agent to the target `lib/librpcsec_gss` directory and let 
 python .\async_code_review_agent.py -d "C:\Users\Pre-Installed User\Documents\github\freebsd-src\lib\librpcsec_gss"
 ```
 
-The first couple of runs did not catch the stack overflow vulnerability. Looking at the original prompt I had, I instructed the agent to analyze the file for /*security misconfigurations*/. Maybe that is why it just did that and ignore other classes of vulnerabilities. So I improved the prompt to look out for vulnerabilities and misconfigurations, specifically to look for stack buffer overflows in C programs.
+The first couple of runs did not catch the stack overflow vulnerability. Looking at the original prompt, I had instructed the agent to analyze the file for *security misconfigurations*. Maybe that is why it just did that and ignore other classes of vulnerabilities. So I improved the prompt to look out for vulnerabilities and misconfigurations, specifically to look for stack buffer overflows in C programs.
 
 ```
 diff --git a/agents/async_code_review_agent.py b/agents/async_code_review_agent.py
