@@ -76,8 +76,58 @@ index b12880d..e3b98ad 100644
 With this change, Gemma4 got it in the first try and identified the vulnerable function name in the file `svc_rpcsec_gss.c`. It correctly identified the failure mode of using memcpy to copy data based on the length provided by the caller (oa->oa_length) without performing a bounds check against the size of rpchdr. This tracks with the FreeBSD [patch](https://www.freebsd.org/security/patches/SA-26:08/rpcsec_gss.patch) released to fix this issue.
 
 ---
-{% capture my_content %}{% include /assets/posts/2026-04-17_09-19-svc_rpcsec_gss.md %}{% endcapture %}
-{{ my_content | markdownify }}
+
+**File Analyzed:** `svc_rpcsec_gss.c`
+**Analysis Timestamp:** 2026-04-17_09-19
+## Findings
+
+### 1. Stack Buffer Overflow in `svc_rpc_gss_validate` function [Impact - HIGH]
+
+The `svc_rpc_gss_validate` function attempts to reconstruct the RPC header from the credential data (`oa->oa_base`) into a local stack buffer (`rpchdr`). The code uses `memcpy` to copy data based on the length provided by the caller (`oa->oa_length`) without performing a bounds check against the size of `rpchdr`.
+
+**Vulnerability Context:**
+The function declares a local buffer `rpchdr` of fixed size:
+```c
+int32_t			rpchdr[128 / sizeof(int32_t)]; // Size: 16 * sizeof(int32_t) = 64 bytes
+...
+if (oa->oa_length) {
+    memcpy((caddr_t)buf, oa->oa_base, oa->oa_length);
+    buf += RNDUP(oa->oa_length) / sizeof(int32_t);
+}
+```
+If an attacker sends a malicious RPC credential where `oa->oa_length` is greater than 64 bytes, the `memcpy` call will write beyond the allocated bounds of `rpchdr`, resulting in a stack buffer overflow. This could lead to arbitrary code execution or program crash (denial of service).
+
+**Potential Issue (Overly Large `oa_length`):**
+An attacker can craft a credential packet where `oa->oa_length` exceeds 64 bytes, overwriting adjacent stack variables and potentially function return addresses.
+
+**Proof of Concept Exploit Code:**
+```
+[Attacker crafts an RPC packet where rm_call.cb_cred.oa_length > 64 bytes,
+and provides the first 64 bytes to contain a controlled payload designed to
+overwrite the return address of svc_rpc_gss_validate.]
+```
+
+**Recommendation:**
+1. **Input Validation (Critical):** Before performing the `memcpy`, strictly validate that `oa->oa_length` does not exceed the size of the destination buffer (`rpchdr`). The check should be:
+    ```c
+    #define RPCHDR_MAX_SIZE (128 / sizeof(int32_t) * sizeof(int32_t)) // 64 bytes
+
+    if (oa->oa_length > RPCHDR_MAX_SIZE) {
+        log_status("oa_length_exceeded", client->cl_mech, GSS_S_FAILURE, NULL);
+        client->cl_state = CLIENT_STALE;
+        return (FALSE);
+    }
+    // Proceed with memcpy only if the length is validated
+    ```
+2. **Secure Coding Practices:** Whenever handling length-delimited network or external inputs in C, always use the smallest safe size when copying data (e.g., use `snprintf` or `memcpy(dest, src, min(length, buffer_size))`) to ensure bounds are respected.
+
+### 2. Potential Integer Handling Issues in `svc_rpc_gss_nextverf` [Impact - LOW]
+
+The function relies on bitwise operations and shifts to manage sequence numbers. While the logic appears correct for advancing the window, the handling of sequence number calculations involving `uint32_t` and `htonl` should be thoroughly reviewed to ensure there are no subtle overflow conditions when calculating `offset` or manipulating masks, especially if the sequence window size (`SVC_RPC_GSS_SEQWINDOW`) were configurable or larger. Given the fixed small window size (128), this is a low-risk finding but warrants a detailed audit of arithmetic safety.
+
+**Recommendation:**
+1. **Code Review:** Conduct a detailed static analysis specifically on the sequence number logic (`svc_rpc_gss_update_seq` and `svc_rpc_gss_nextverf`) to confirm that all arithmetic operations, especially subtractions and additions involving `offset`, are properly safeguarded against unexpected wrapping or overflow behavior on the target architecture.
+
 ---
 
 ## The missing parts
